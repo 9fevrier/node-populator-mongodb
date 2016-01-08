@@ -18,4 +18,9 @@ module.exports = [
     name: 'Project 2',
     customer: getDBRef('customer', '300000000000000000000002'),
   },
+  {
+    _id: new ObjectID('300000000000000000000001'),
+    name: 'Project 3',
+    customer: getDBRef('customer', '300000000000000000000001'),
+  },
 ];

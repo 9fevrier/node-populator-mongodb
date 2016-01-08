@@ -45,7 +45,7 @@ const bunyan = require('bunyan');
 const PopulatorMongo = require('../dist/index');  // eslint-disable-line no-unused-vars
 
 // Logger
-const LOG = bunyan.createLogger({name: __filename});
+const LOG = bunyan.createLogger({name: __filename}); // eslint-disable-line no-unused-vars
 
 let db = null;
 
@@ -54,7 +54,7 @@ let db = null;
  */
 describe('PopulatorMongo', () => { // eslint-disable-line no-undef
 
-  beforeEach((done) => { // eslint-disable-line no-undef
+  before((done) => { // eslint-disable-line no-undef
     mongodb.MongoClient.connect('mongodb://localhost:27017/populator_test')
       .then((connection) => {
         db = connection;
@@ -62,19 +62,34 @@ describe('PopulatorMongo', () => { // eslint-disable-line no-undef
       }, done);
   });
 
-  afterEach((done) => { // eslint-disable-line no-undef
+  after((done) => { // eslint-disable-line no-undef
     db.close(done);
   });
 
 // **The derived class should have an incremented value.**
-  it('should have two projects and two customers', (done) => { // eslint-disable-line no-undef
+  it('should have 2 customers', (done) => { // eslint-disable-line no-undef
     const populator = new PopulatorMongo('mongodb://localhost:27017/populator_test', '../test/resources/', ['customers', 'projects']);
     populator.populate((instance) => { // eslint-disable-line no-unused-vars
-      LOG.info('db = ' + db);
+      db.collection('customers').count().then((number) => {
+        number.should.be.equal(2);
+      }).catch((err) => {
+        done(err);
+      });
     }).stream().then(() => {
-      LOG.info('db = ' + db);
       done();
     }, done);
   });
-})
-;
+
+  it('should have 3 customers', (done) => { // eslint-disable-line no-undef
+    const populator = new PopulatorMongo('mongodb://localhost:27017/populator_test', '../test/resources/', ['customers', 'projects']);
+    populator.populate((instance) => { // eslint-disable-line no-unused-vars
+      db.collection('projects').count().then((number) => {
+        number.should.be.equal(3);
+      }).catch((err) => {
+        done(err);
+      });
+    }).stream().then(() => {
+      done();
+    }, done);
+  });
+});
