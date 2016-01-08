@@ -114,9 +114,21 @@ mocha
 
 ## Change history
 
-* **v0.0.2** :
+### v0.0.4
+
+  * Complete missing informations in the README file.
+
+### v0.0.3
+
+  * Add two unit tests to improve quality code.
+  * Fix bugs when importing data to populate.
+
+### v0.0.2
+
   * Fix bug: invalid path of resources.
-* **v0.0.1** :
+  
+### v0.0.1
+
   * Initial version
 
 ## License
