@@ -1,0 +1,11 @@
+{
+  "glob": [
+    "src/**/*.js",
+    "test/**/*.js",
+    "*.js",
+    "*.md"
+  ],
+  "github": true,
+  "strip": "--no-strip"
+}
+
