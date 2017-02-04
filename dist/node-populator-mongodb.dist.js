@@ -1,3 +1,29 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _util = require('util');
+
+var _util2 = _interopRequireDefault(_util);
+
+var _bunyan = require('bunyan');
+
+var bunyan = _interopRequireWildcard(_bunyan);
+
+var _mongodb = require('mongodb');
+
+var _mongodb2 = _interopRequireDefault(_mongodb);
+
+var _path = require('path');
+
+var path = _interopRequireWildcard(_path);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /**
  * The MIT License (MIT)
  *
@@ -31,55 +57,51 @@
  * This file is a part of Node Populator for MongoDB.
  */
 
-'use strict'; // eslint-disable-line strict
-
-import util from 'util';
-import * as _ from 'lodash';
-import * as bunyan from 'bunyan';
-import mongodb from 'mongodb';
 // import * as promisifyAll from 'es6-promisify-all';
-import * as path from 'path';
-
-const MongoClient = mongodb.MongoClient;
 // The logger.
-const LOG = bunyan.createLogger({name: __filename});
+var LOG = (0, _bunyan.createLogger)({ name: __filename });
 
 /**
  * # Helper for MongoDB populating
  *
  */
-export default function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
-  let coll = null;
-  let db = new mongodb.Db(dbname, new mongodb.Server(host, port));
-  let p1 = db.open();
-  p1 = p1.then((db) => {
+function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
+  var coll = null;
+  var db = new _mongodb2.default.Db(dbname, new _mongodb2.default.Server(host, port));
+  var p1 = db.open();
+  p1 = p1.then(function (db) {
     db = db;
-  })
-  p1 = p1.then(() => {
+  });
+  p1 = p1.then(function () {
     coll = db.collection('test');
   });
-  p1 = p1.then(() => {
-    const stack = [];
-    collections.map((name) => {
-      const p = db.collection(name).drop();
+  p1 = p1.then(function () {
+    var stack = [];
+    collections.map(function (name) {
+      var p = db.collection(name).drop();
       stack.push(p);
     });
     return Promise.all(stack);
-  })
-  p1 = p1.then(() => {
-    const stack = [];
-    collections.map((name) => {
-      const p = db.collection(name).insertMany(require(path.join(resourcesPath, name)));
+  });
+  p1 = p1.then(function () {
+    var stack = [];
+    collections.map(function (name) {
+      var p = db.collection(name).insertMany(require((0, _path.join)(resourcesPath, name)));
       stack.push(p);
     });
     return Promise.all(stack);
-  })
-  p1 = p1.then(() => {
+  });
+  p1 = p1.then(function () {
     console.log('close');
     return db.close();
-  })
+  });
 
-
-  p1.catch(err => console.log);
+  p1.catch(function (err) {
+    return console.log;
+  });
   return p1;
 }
+
+exports.default = PopulatorMongo;
+module.exports = exports['default'];
+//# sourceMappingURL=node-populator-mongodb.dist.js.map

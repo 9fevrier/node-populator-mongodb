@@ -42,12 +42,18 @@ const mongodb = promisifyAll(require('mongodb'));
 const bunyan = require('bunyan');
 
 // Project imports
-const PopulatorMongo = require('../dist/index');  // eslint-disable-line no-unused-vars
+const PopulatorMongo = require('../dist/node-populator-mongodb.dist');  // eslint-disable-line no-unused-vars
 
 // Logger
 const LOG = bunyan.createLogger({name: __filename}); // eslint-disable-line no-unused-vars
 
 let db = null;
+let conn = null;
+
+const host = 'localhost';
+const port = 27017
+const dbname = 'pop_test';
+
 
 /**
  * ## Unit tests: PopulatorMongo.
@@ -55,11 +61,10 @@ let db = null;
 describe('PopulatorMongo', () => { // eslint-disable-line no-undef
 
   before((done) => { // eslint-disable-line no-undef
-    mongodb.MongoClient.connect('mongodb://localhost:27017/populator_test')
-      .then((connection) => {
-        db = connection;
-        done();
-      }, done);
+    db = new mongodb.Db(dbname, new mongodb.Server(host, port));
+    db.open().then((conn) => { conn = conn; done(); }).catch((err) => {
+      console.log('error: ' + err.stack)
+    });
   });
 
   after((done) => { // eslint-disable-line no-undef
@@ -68,28 +73,26 @@ describe('PopulatorMongo', () => { // eslint-disable-line no-undef
 
 // **The derived class should have an incremented value.**
   it('should have 2 customers', (done) => { // eslint-disable-line no-undef
-    const populator = new PopulatorMongo('mongodb://localhost:27017/populator_test', '../test/resources/', ['customers', 'projects']);
-    populator.populate((instance) => { // eslint-disable-line no-unused-vars
+    const populator = PopulatorMongo(host, port, dbname, '../test/resources/', ['customers', 'projects']);
+    populator.then((instance) => { // eslint-disable-line no-unused-vars
       db.collection('customers').count().then((number) => {
-        number.should.be.equal(2);
+        number.should.be.equal(5);
+        done();
       }).catch((err) => {
         done(err);
       });
-    }).stream().then(() => {
-      done();
-    }, done);
+    });
   });
 
   it('should have 3 customers', (done) => { // eslint-disable-line no-undef
-    const populator = new PopulatorMongo('mongodb://localhost:27017/populator_test', '../test/resources/', ['customers', 'projects']);
-    populator.populate((instance) => { // eslint-disable-line no-unused-vars
+    const populator = PopulatorMongo(host, port, dbname, '../test/resources/', ['customers', 'projects']);
+    populator.then((instance) => { // eslint-disable-line no-unused-vars
       db.collection('projects').count().then((number) => {
         number.should.be.equal(3);
+        done();
       }).catch((err) => {
         done(err);
       });
-    }).stream().then(() => {
-      done();
-    }, done);
-  });
+    });
+  })
 });
