@@ -44,6 +44,21 @@ const MongoClient = mongodb.MongoClient;
 // The logger.
 const LOG = bunyan.createLogger({name: __filename});
 
+var dbQueryCounter = 0;
+var maxDbIdleTime = 5000; //maximum db idle time
+
+var closeIdleDb = function(connection){
+  var previousCounter = 0;
+  var checker = setInterval(function(){
+    if (previousCounter == dbQueryCounter && dbQueryCounter != 0) {
+        connection.close();
+        clearInterval(closeIdleDb);
+    } else {
+        previousCounter = dbQueryCounter;
+    }
+  }, maxDbIdleTime);
+};
+
 /**
  * # Helper for MongoDB populating
  *
@@ -61,10 +76,25 @@ export default function PopulatorMongo(host, port, dbname, resourcesPath, collec
   p1 = p1.then(() => {
     const stack = [];
     collections.map((name) => {
-      const p = db.collection(name).drop();
+      let p = db.collection(name).dropIndexes();
+      p = p.catch(err => { })
       stack.push(p);
     });
     return Promise.all(stack);
+  })
+  p1 = p1.then(() => {
+    const stack = [];
+    collections.map((name) => {
+      let p = db.collection(name).drop();
+      p = p.catch(err => { })
+      stack.push(p);
+    });
+    return Promise.all(stack);
+  })
+  p1 = p1.then(() => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, 2000)
+    });
   })
   p1 = p1.then(() => {
     const stack = [];
@@ -76,6 +106,7 @@ export default function PopulatorMongo(host, port, dbname, resourcesPath, collec
   })
   p1 = p1.then(() => {
     console.log('close');
+    closeIdleDb(db);
     return db.close();
   })
 

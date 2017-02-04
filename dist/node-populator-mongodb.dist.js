@@ -61,6 +61,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // The logger.
 var LOG = (0, _bunyan.createLogger)({ name: __filename });
 
+var dbQueryCounter = 0;
+var maxDbIdleTime = 5000; //maximum db idle time
+
+var closeIdleDb = function closeIdleDb(connection) {
+  var previousCounter = 0;
+  var checker = setInterval(function () {
+    if (previousCounter == dbQueryCounter && dbQueryCounter != 0) {
+      connection.close();
+      clearInterval(closeIdleDb);
+    } else {
+      previousCounter = dbQueryCounter;
+    }
+  }, maxDbIdleTime);
+};
+
 /**
  * # Helper for MongoDB populating
  *
@@ -78,10 +93,25 @@ function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
   p1 = p1.then(function () {
     var stack = [];
     collections.map(function (name) {
-      var p = db.collection(name).drop();
+      var p = db.collection(name).dropIndexes();
+      p = p.catch(function (err) {});
       stack.push(p);
     });
     return Promise.all(stack);
+  });
+  p1 = p1.then(function () {
+    var stack = [];
+    collections.map(function (name) {
+      var p = db.collection(name).drop();
+      p = p.catch(function (err) {});
+      stack.push(p);
+    });
+    return Promise.all(stack);
+  });
+  p1 = p1.then(function () {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 2000);
+    });
   });
   p1 = p1.then(function () {
     var stack = [];
@@ -93,6 +123,7 @@ function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
   });
   p1 = p1.then(function () {
     console.log('close');
+    closeIdleDb(db);
     return db.close();
   });
 
