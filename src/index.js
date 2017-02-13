@@ -47,14 +47,14 @@ const LOG = bunyan.createLogger({name: __filename});
 var dbQueryCounter = 0;
 var maxDbIdleTime = 5000; //maximum db idle time
 
-var closeIdleDb = function(connection){
+var closeIdleDb = function (connection) {
   var previousCounter = 0;
-  var checker = setInterval(function(){
+  var checker = setInterval(function () {
     if (previousCounter == dbQueryCounter && dbQueryCounter != 0) {
-        connection.close();
-        clearInterval(closeIdleDb);
+      connection.close();
+      clearInterval(closeIdleDb);
     } else {
-        previousCounter = dbQueryCounter;
+      previousCounter = dbQueryCounter;
     }
   }, maxDbIdleTime);
 };
@@ -63,7 +63,7 @@ var closeIdleDb = function(connection){
  * # Helper for MongoDB populating
  *
  */
-export default function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
+export default function PopulatorMongo(host, port, dbname, resourcesPath, extension, collections) {
   let coll = null;
   let db = new mongodb.Db(dbname, new mongodb.Server(host, port));
   let p1 = db.open();
@@ -71,13 +71,11 @@ export default function PopulatorMongo(host, port, dbname, resourcesPath, collec
     db = db;
   })
   p1 = p1.then(() => {
-    coll = db.collection('test');
-  });
-  p1 = p1.then(() => {
     const stack = [];
     collections.map((name) => {
       let p = db.collection(name).dropIndexes();
-      p = p.catch(err => { })
+      p = p.catch(err => {
+      })
       stack.push(p);
     });
     return Promise.all(stack);
@@ -86,26 +84,22 @@ export default function PopulatorMongo(host, port, dbname, resourcesPath, collec
     const stack = [];
     collections.map((name) => {
       let p = db.collection(name).drop();
-      p = p.catch(err => { })
+      p = p.catch(err => {
+      })
       stack.push(p);
     });
     return Promise.all(stack);
-  })
-  p1 = p1.then(() => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, 2000)
-    });
   })
   p1 = p1.then(() => {
     const stack = [];
     collections.map((name) => {
-      const p = db.collection(name).insertMany(require(path.join(resourcesPath, name)));
-      stack.push(p);
+        const p = db.collection(name).insertMany(require(path.join(resourcesPath, name + extension)));
+        stack.push(p);
+
     });
     return Promise.all(stack);
   })
   p1 = p1.then(() => {
-    console.log('close');
     closeIdleDb(db);
     return db.close();
   })

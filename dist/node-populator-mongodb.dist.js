@@ -80,15 +80,12 @@ var closeIdleDb = function closeIdleDb(connection) {
  * # Helper for MongoDB populating
  *
  */
-function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
+function PopulatorMongo(host, port, dbname, resourcesPath, extension, collections) {
   var coll = null;
   var db = new _mongodb2.default.Db(dbname, new _mongodb2.default.Server(host, port));
   var p1 = db.open();
   p1 = p1.then(function (db) {
     db = db;
-  });
-  p1 = p1.then(function () {
-    coll = db.collection('test');
   });
   p1 = p1.then(function () {
     var stack = [];
@@ -109,20 +106,14 @@ function PopulatorMongo(host, port, dbname, resourcesPath, collections) {
     return Promise.all(stack);
   });
   p1 = p1.then(function () {
-    return new Promise(function (resolve) {
-      setTimeout(resolve, 2000);
-    });
-  });
-  p1 = p1.then(function () {
     var stack = [];
     collections.map(function (name) {
-      var p = db.collection(name).insertMany(require((0, _path.join)(resourcesPath, name)));
+      var p = db.collection(name).insertMany(require((0, _path.join)(resourcesPath, name + extension)));
       stack.push(p);
     });
     return Promise.all(stack);
   });
   p1 = p1.then(function () {
-    console.log('close');
     closeIdleDb(db);
     return db.close();
   });
